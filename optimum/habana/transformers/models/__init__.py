@@ -86,6 +86,13 @@ from .esm import (
     gaudi_rot_matmul,
     gaudi_rot_vec_mul,
 )
+from .exaone import(
+    GaudiExaoneForCausalLM,
+    GaudiExaoneSdpaAttention,
+    gaudi_exaone_model_forward,
+    gaudi_exaone_block_forward,
+    gaudi_exaone_rmsnorm_forward,
+)
 from .falcon import (
     GaudiFalconAttention,
     GaudiFalconDecoderLayer,

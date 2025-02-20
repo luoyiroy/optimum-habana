@@ -67,6 +67,8 @@ from .models import (
     GaudiCodeGenForCausalLM,
     GaudiCohereDecoderLayer,
     GaudiCohereForCausalLM,
+    GaudiExaoneForCausalLM,
+    GaudiExaoneSdpaAttention,
     GaudiFalconAttention,
     GaudiFalconDecoderLayer,
     GaudiFalconForCausalLM,
@@ -223,6 +225,9 @@ from .models import (
     gaudi_DetrLoss_loss_labels,
     gaudi_esm_for_protein_folding_forward,
     gaudi_esmfolding_trunk_forward,
+    gaudi_exaone_model_forward,
+    gaudi_exaone_block_forward,
+    gaudi_exaone_rmsnorm_forward,
     gaudi_falcon_linear_forward,
     gaudi_FalconMambaForCausalLM_prepare_inputs_for_generation,
     gaudi_FalconMambaModel_forward,
@@ -800,3 +805,16 @@ def adapt_transformers_to_gaudi():
     transformers.models.detr.modeling_detr.DetrLoss.loss_cardinality = gaudi_DetrLoss_loss_cardinality
     transformers.models.detr.modeling_detr.DetrLoss.loss_boxes = gaudi_DetrLoss_loss_boxes
     transformers.models.detr.modeling_detr.DetrLoss.forward = gaudi_DetrLoss_forward
+
+    """
+    Replaces some Exaone' methods for equivalent methods optimized
+    for Gaudi.
+    """
+    logger.info("`optimum_habana` is set, Optimization for exaone generation on Gaudi")
+    # Optimization for exaone generation on Gaudi
+    modeling_exaone.ExaoneSdpaAttention = GaudiExaoneSdpaAttention
+    modeling_exaone.ExaoneBlock.forward = gaudi_exaone_block_forward
+    modeling_exaone.ExaoneModel.forward = gaudi_exaone_model_forward
+    modeling_exaone.ExaoneForCausalLM.forward = GaudiExaoneForCausalLM.forward
+    modeling_exaone.ExaoneForCausalLM.prepare_inputs_for_generation = GaudiExaoneForCausalLM.prepare_inputs_for_generation
+    modeling_exaone.ExaoneRMSNorm.forward = gaudi_exaone_rmsnorm_forward
