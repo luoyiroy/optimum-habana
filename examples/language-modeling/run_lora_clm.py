@@ -699,7 +699,7 @@ def main():
     else:
         raise ValueError("Must provide model_name_or_path to load a pretrained CausalLM model.")
 
-    if model.config.model_type == "llama":
+    if model.config.model_type == "llama" or model.config.model_type == "xyz":
         if model.generation_config.pad_token_id is None:
             if isinstance(model.generation_config.eos_token_id, int):
                 model.generation_config.pad_token_id = model.generation_config.eos_token_id

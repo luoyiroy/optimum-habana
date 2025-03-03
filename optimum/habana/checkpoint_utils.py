@@ -94,7 +94,7 @@ def model_on_meta(config):
     """
     Checks if load the model to meta.
     """
-    return config.model_type in ["bloom", "llama", "falcon", "mixtral", "qwen2"]
+    return config.model_type in ["bloom", "llama", "xyz", "falcon", "mixtral", "qwen2"]
 
 
 def get_optimized_model_name(config):
@@ -144,7 +144,7 @@ def get_ds_injection_policy(config):
 
             policy = {GPTNeoXLayer: ("attention.dense", "mlp.dense_4h_to_h")}
 
-        if model_type == "llama":
+        if model_type == "llama" or model_type == "xyz":
             from transformers.models.llama.modeling_llama import LlamaDecoderLayer
 
             policy = {LlamaDecoderLayer: ("self_attn.o_proj", "mlp.down_proj")}

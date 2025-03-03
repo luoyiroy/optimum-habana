@@ -185,6 +185,8 @@ from .models import (
     MiniCPM3ForCausalLM,
     MistralConfig,
     MixtralConfig,
+    XyzConfig,
+    XyzForCausalLM,
     _gaudi_wav2vec2_compute_mask_indices,
     _gaudi_wav2vec2_mask_hidden_states,
     gaudi_albert_forward,
@@ -810,3 +812,6 @@ def adapt_transformers_to_gaudi():
     transformers.models.detr.modeling_detr.DetrLoss.loss_cardinality = gaudi_DetrLoss_loss_cardinality
     transformers.models.detr.modeling_detr.DetrLoss.loss_boxes = gaudi_DetrLoss_loss_boxes
     transformers.models.detr.modeling_detr.DetrLoss.forward = gaudi_DetrLoss_forward
+
+    transformers.AutoConfig.register("xyz", XyzConfig)
+    transformers.AutoModelForCausalLM.register(XyzConfig, XyzForCausalLM)

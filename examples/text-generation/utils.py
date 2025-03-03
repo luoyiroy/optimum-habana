@@ -508,7 +508,7 @@ def setup_distributed_model(args, model_dtype, model_kwargs, logger):
 
     model = deepspeed.init_inference(model, **ds_inference_kwargs)
     model = model.module
-    if model.config.model_type in ["llama", "falcon", "qwen2", "starcoder2", "gemma"]:
+    if model.config.model_type in ["llama", "xyz", "falcon", "qwen2", "starcoder2", "gemma"]:
         patch_scoped_linear_all_reduce(model)
 
     if args.quant_config:
@@ -594,7 +594,7 @@ def setup_tokenizer(args, model, assistant_model, logger):
     if not model.config.is_encoder_decoder:
         tokenizer.padding_side = "left"
 
-    if model.config.model_type == "llama":
+    if model.config.model_type == "llama" or model.config.model_type == "xyz":
         if model.generation_config.pad_token_id is None:
             if isinstance(model.generation_config.eos_token_id, int):
                 model.generation_config.pad_token_id = model.generation_config.eos_token_id

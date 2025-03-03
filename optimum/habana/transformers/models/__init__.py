@@ -338,3 +338,7 @@ from .xglm import (
     gaudi_xglm_model_forward,
 )
 from .xlm_roberta import gaudi_XLMRoberta_Sdpa_SelfAttention_forward
+from .xyz import (
+    XyzForCausalLM,
+    XyzConfig,
+)

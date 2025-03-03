@@ -84,6 +84,7 @@ MODELS_OPTIMIZED_WITH_STATIC_SHAPES = [
     "gpt_neo",
     "gpt_neox",
     "llama",
+    "xyz",
     "falcon",
     "codegen",
     "gpt_bigcode",
@@ -1083,6 +1084,7 @@ class GaudiGenerationMixin(GenerationMixin):
         if generation_config.reuse_cache:
             assert self.config.model_type in [
                 "llama",
+                "xyz",
                 "mistral",
                 "falcon",
                 "mixtral",
@@ -1302,6 +1304,7 @@ class GaudiGenerationMixin(GenerationMixin):
 
             if self.config.model_type in [
                 "llama",
+                "xyz",
                 "falcon",
                 "mistral",
                 "qwen2",

@@ -42,7 +42,7 @@ def gaudi_prepare_inputs_for_generation(self, *args, task_ids: torch.Tensor = No
     # TODO: starting with transformers 4.38, all architectures should support caching.
     uses_transformers_4_38 = packaging.version.parse(transformers.__version__) >= packaging.version.parse("4.38.0")
     uses_transformers_4_36 = packaging.version.parse(transformers.__version__) >= packaging.version.parse("4.36.0")
-    transformers_new_cache_archs = ["llama", "mistral", "persimmon", "phi"]
+    transformers_new_cache_archs = ["llama", "xyz", "mistral", "persimmon", "phi"]
     uses_cache = uses_transformers_4_38 or (
         uses_transformers_4_36 and self.base_model.config.model_type in transformers_new_cache_archs
     )
