@@ -10,3 +10,5 @@ from .modeling_xyz import (
     GaudiXyzRotaryEmbedding,
     gaudi_xyz_rmsnorm_forward,
 )
+from .tokenization_xyz import XyzTokenizer
+from .tokenization_xyz_fast import XyzTokenizerFast

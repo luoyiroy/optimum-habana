@@ -341,4 +341,15 @@ from .xlm_roberta import gaudi_XLMRoberta_Sdpa_SelfAttention_forward
 from .xyz import (
     XyzForCausalLM,
     XyzConfig,
+    XyzTokenizer,
+    XyzTokenizerFast,
+
+    GaudiXyzAttention,
+    GaudiXyzDecoderLayer,
+    GaudiXyzDynamicNTKScalingRotaryEmbedding,
+    GaudiXyzLinearScalingRotaryEmbedding,
+    GaudiXyzMLP,
+    GaudiXyzModel,
+    GaudiXyzRotaryEmbedding,
+    gaudi_xyz_rmsnorm_forward,
 )

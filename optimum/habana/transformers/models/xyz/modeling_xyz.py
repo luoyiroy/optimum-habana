@@ -9,13 +9,13 @@ from transformers.activations import ACT2FN
 from transformers.cache_utils import Cache, DynamicCache, StaticCache
 from transformers.modeling_outputs import BaseModelOutputWithPast, CausalLMOutputWithPast
 from transformers.modeling_rope_utils import ROPE_INIT_FUNCTIONS
-from transformers.models.llama.modeling_llama import (
-    LlamaAttention,
-    LlamaDecoderLayer,
-    LlamaForCausalLM,
-    LlamaMLP,
-    LlamaModel,
-    LlamaRMSNorm,
+from .modeling_xyz_base import (
+    XyzAttention,
+    XyzDecoderLayer,
+    XyzForCausalLMBase,
+    XyzMLP,
+    XyzModel,
+    XyzRMSNorm,
     apply_rotary_pos_emb,
     logger,
 )
@@ -235,9 +235,9 @@ class GaudiXyzDynamicNTKScalingRotaryEmbedding(GaudiXyzRotaryEmbedding):
         self.register_buffer("_sin_cached", emb.sin().to(dtype), persistent=False)
 
 
-class GaudiXyzMLP(LlamaMLP):
+class GaudiXyzMLP(XyzMLP):
     def __init__(self, config):
-        super(LlamaMLP, self).__init__()
+        super(XyzMLP, self).__init__()
         self.config = config
         self.hidden_size = config.hidden_size
         self.intermediate_size = config.intermediate_size
@@ -438,7 +438,7 @@ def GaudiDistributedAttention(fused_scaled_dot_product_attention, fused_scaled_d
         return fused_scaled_dot_product_attention
 
 
-class GaudiXyzAttention(LlamaAttention):
+class GaudiXyzAttention(XyzAttention):
     def __init__(self, config: XyzConfig, layer_idx: Optional[int] = None):
         super().__init__(config, layer_idx)
 
@@ -911,15 +911,15 @@ class TPGaudiXyzAttention(GaudiXyzAttention, TPModule):
         return hidden_states, attn_weights, present_key_value
 
 
-class GaudiXyzDecoderLayer(LlamaDecoderLayer):
+class GaudiXyzDecoderLayer(XyzDecoderLayer):
     def __init__(self, config: XyzConfig, layer_idx: int):
-        super(LlamaDecoderLayer, self).__init__()
+        super(XyzDecoderLayer, self).__init__()
         self.hidden_size = config.hidden_size
         self.self_attn = GaudiXyzAttention(config=config, layer_idx=layer_idx)
 
         self.mlp = GaudiXyzMLP(config)
-        self.input_layernorm = LlamaRMSNorm(config.hidden_size, eps=config.rms_norm_eps)
-        self.post_attention_layernorm = LlamaRMSNorm(config.hidden_size, eps=config.rms_norm_eps)
+        self.input_layernorm = XyzRMSNorm(config.hidden_size, eps=config.rms_norm_eps)
+        self.post_attention_layernorm = XyzRMSNorm(config.hidden_size, eps=config.rms_norm_eps)
 
     def allocate_kv_cache(self, batch_size, max_seq_len, inp_seq_len):
         self.self_attn.allocate_kv_cache(batch_size, max_seq_len, inp_seq_len)
@@ -1143,18 +1143,17 @@ class GaudiXyzDecoderLayer(LlamaDecoderLayer):
         return hidden_states
 
 
-class GaudiXyzModel(LlamaModel):
+class GaudiXyzModel(XyzModel):
     """
     Copied from https://github.com/huggingface/transformers/blob/v4.38.2/src/transformers/models/llama/modeling_llama.py#L909
     """
-    config_class = XyzConfig
     def __init__(self, config: XyzConfig):
         """
         Copied from https://github.com/huggingface/transformers/blob/v4.38.2/src/transformers/models/llama/modeling_llama.py#L917
         1. set fill_value to 1 instead of True
         2. add device=self.device
         """
-        super(LlamaModel, self).__init__(config)
+        super(XyzModel, self).__init__(config)
         self.padding_idx = config.pad_token_id
         self.vocab_size = config.vocab_size
         self.embed_tokens = torch.nn.Embedding(config.vocab_size, config.hidden_size, self.padding_idx)
@@ -1168,7 +1167,7 @@ class GaudiXyzModel(LlamaModel):
         # parallel_strategy is not JSON serializable
         config.parallel_strategy = None
 
-        self.norm = LlamaRMSNorm(config.hidden_size, eps=config.rms_norm_eps)
+        self.norm = XyzRMSNorm(config.hidden_size, eps=config.rms_norm_eps)
         self.gradient_checkpointing = False
 
         # Initialize weights and apply final processing
@@ -1419,7 +1418,7 @@ class GaudiXyzModel(LlamaModel):
         )
 
 
-class XyzForCausalLM(LlamaForCausalLM):
+class XyzForCausalLM(XyzForCausalLMBase):
     """
     Inherits from LlamaForCausalLM: https://github.com/huggingface/transformers/blob/main/src/transformers/models/llama/modeling_llama.py
     The only differences are:
@@ -1430,7 +1429,6 @@ class XyzForCausalLM(LlamaForCausalLM):
     - add new args attn_softmax_bf16
     - add new args reuse_cache
     """
-    config_class = XyzConfig
     def __init__(self, config, parallel_strategy: DistributedStrategy = NoOpStrategy):
         config.parallel_strategy = parallel_strategy
         super().__init__(config)

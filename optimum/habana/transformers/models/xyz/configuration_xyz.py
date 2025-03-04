@@ -1,8 +1,7 @@
-from transformers.models.llama.configuration_llama import LlamaConfig
+from .configuration_xyz_base import XyzConfig
 
 
-class XyzConfig(LlamaConfig):
-    model_type = "xyz"
+class XyzConfig(XyzConfig):
     def __init__(
         self,
         vocab_size=32000,

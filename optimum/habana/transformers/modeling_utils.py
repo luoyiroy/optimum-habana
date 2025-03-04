@@ -15,6 +15,7 @@
 
 import accelerate
 import transformers
+import optimum
 import transformers.utils.fx
 
 from ..accelerate.utils import extract_model_from_parallel
@@ -187,6 +188,16 @@ from .models import (
     MixtralConfig,
     XyzConfig,
     XyzForCausalLM,
+    XyzTokenizer,
+    XyzTokenizerFast,
+    GaudiXyzAttention,
+    GaudiXyzDecoderLayer,
+    GaudiXyzDynamicNTKScalingRotaryEmbedding,
+    GaudiXyzLinearScalingRotaryEmbedding,
+    GaudiXyzMLP,
+    GaudiXyzModel,
+    GaudiXyzRotaryEmbedding,
+    gaudi_xyz_rmsnorm_forward,
     _gaudi_wav2vec2_compute_mask_indices,
     _gaudi_wav2vec2_mask_hidden_states,
     gaudi_albert_forward,
@@ -813,5 +824,20 @@ def adapt_transformers_to_gaudi():
     transformers.models.detr.modeling_detr.DetrLoss.loss_boxes = gaudi_DetrLoss_loss_boxes
     transformers.models.detr.modeling_detr.DetrLoss.forward = gaudi_DetrLoss_forward
 
+
+    optimum.habana.transformers.models.xyz.modeling_xyz_base.XyzModel = GaudiXyzModel
+    optimum.habana.transformers.models.xyz.modeling_xyz_base.XyzAttention = GaudiXyzAttention
+    optimum.habana.transformers.models.xyz.modeling_xyz_base.XyzMLP = GaudiXyzMLP
+    optimum.habana.transformers.models.xyz.modeling_xyz_base.XyzDecoderLayer = GaudiXyzDecoderLayer
+    optimum.habana.transformers.models.xyz.modeling_xyz_base.XyzRotaryEmbedding = GaudiXyzRotaryEmbedding
+    optimum.habana.transformers.models.xyz.modeling_xyz_base.XyzLinearScalingRotaryEmbedding = GaudiXyzLinearScalingRotaryEmbedding
+    optimum.habana.transformers.models.xyz.modeling_xyz_base.XyzDynamicNTKScalingRotaryEmbedding = (
+        GaudiXyzDynamicNTKScalingRotaryEmbedding
+    )
+    optimum.habana.transformers.models.xyz.modeling_xyz_base.XyzRMSNorm.forward = gaudi_xyz_rmsnorm_forward
+    optimum.habana.transformers.models.xyz.modeling_xyz_base.XyzConfig = XyzConfig
+
     transformers.AutoConfig.register("xyz", XyzConfig)
     transformers.AutoModelForCausalLM.register(XyzConfig, XyzForCausalLM)
+    transformers.AutoTokenizer.register(XyzConfig, XyzTokenizer)
+    transformers.AutoTokenizer.register(XyzConfig, fast_tokenizer_class=XyzTokenizerFast)
