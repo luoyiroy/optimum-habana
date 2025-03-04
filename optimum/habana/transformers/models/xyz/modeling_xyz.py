@@ -62,7 +62,7 @@ import habana_frameworks.torch.core as htcore
 
 def gaudi_xyz_rmsnorm_forward(self, hidden_states):
     """
-    Copied from LlamaRMSNorm.forward: https://github.com/huggingface/transformers/blob/main/src/transformers/models/llama/modeling_llama.py
+    Copied from XyzRMSNorm.forward: https://github.com/huggingface/transformers/blob/main/src/transformers/models/xyz/modeling_xyz.py
     The only differences are:
         - override RMSNorm with Habana fused RMSNorm
     """
@@ -100,7 +100,7 @@ class GaudiXyzRotaryEmbedding(torch.nn.Module):
         self.rope_kwargs = {}
         if config is None:
             logger.warning_once(
-                "`LlamaRotaryEmbedding` can now be fully parameterized by passing the model config through the "
+                "`XyzRotaryEmbedding` can now be fully parameterized by passing the model config through the "
                 "`config` argument. All other arguments will be removed in v4.46"
             )
             self.rope_kwargs = {
@@ -188,8 +188,8 @@ class GaudiXyzRotaryEmbedding(torch.nn.Module):
 class GaudiXyzLinearScalingRotaryEmbedding(GaudiXyzRotaryEmbedding):
     def __init__(self, *args, **kwargs):
         logger.warning_once(
-            "`LlamaLinearScalingRotaryEmbedding` is deprecated an will be removed in v4.46. Please use "
-            "`LlamaRotaryEmbedding`, which now also does linear scaling (simply pass the model config to __init__)."
+            "`XyzLinearScalingRotaryEmbedding` is deprecated an will be removed in v4.46. Please use "
+            "`XyzRotaryEmbedding`, which now also does linear scaling (simply pass the model config to __init__)."
         )
         kwargs["rope_type"] = "linear"
         super().__init__(*args, **kwargs)
@@ -209,8 +209,8 @@ class GaudiXyzLinearScalingRotaryEmbedding(GaudiXyzRotaryEmbedding):
 class GaudiXyzDynamicNTKScalingRotaryEmbedding(GaudiXyzRotaryEmbedding):
     def __init__(self, *args, **kwargs):
         logger.warning_once(
-            "`LlamaDynamicNTKScalingRotaryEmbedding` is deprecated an will be removed in v4.46. Please use "
-            "`LlamaRotaryEmbedding`, which now also does dynamic ntk scaling (simply pass the model config to "
+            "`XyzDynamicNTKScalingRotaryEmbedding` is deprecated an will be removed in v4.46. Please use "
+            "`XyzRotaryEmbedding`, which now also does dynamic ntk scaling (simply pass the model config to "
             "__init__)."
         )
         kwargs["rope_type"] = "dynamic"
@@ -322,7 +322,7 @@ def gaudi_xyz_repeat_kv(
     n_rep: int,
 ):
     """
-    Copied from repeat_kv: https://github.com/huggingface/transformers/blob/main/src/transformers/models/llama/modeling_llama.py
+    Copied from repeat_kv: https://github.com/huggingface/transformers/blob/main/src/transformers/models/xyz/modeling_xyz.py
     The only differences are:
         - Append num_key_value_heads == 1 check as kv states can be broadcasted during matmuls so need to expand and reshape them.
         - Add new args query_states, key_states, value_states and attention_mask and update the logic for expansion.
@@ -548,7 +548,7 @@ class GaudiXyzAttention(XyzAttention):
         **kwargs,
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor], Optional[Tuple[torch.Tensor]]]:
         """
-        Copied from LlamaAttention.forward: https://github.com/huggingface/transformers/blob/main/src/transformers/models/llama/modeling_llama.py
+        Copied from XyzAttention.forward: https://github.com/huggingface/transformers/blob/main/src/transformers/models/xyz/modeling_xyz.py
         The only differences are:
         - add new args token_idx
         - optimize KV cache
@@ -955,7 +955,7 @@ class GaudiXyzDecoderLayer(XyzDecoderLayer):
         **kwargs,
     ) -> Tuple[torch.FloatTensor, Optional[Tuple[torch.FloatTensor, torch.FloatTensor]]]:
         """
-        Copied from LlamaDecoderLayer.forward: https://github.com/huggingface/transformers/blob/main/src/transformers/models/llama/modeling_llama.py
+        Copied from XyzDecoderLayer.forward: https://github.com/huggingface/transformers/blob/main/src/transformers/models/xyz/modeling_xyz.py
         The only differences are:
         - add new args token_idx
         - add new args attn_softmax_bf16
@@ -1145,11 +1145,11 @@ class GaudiXyzDecoderLayer(XyzDecoderLayer):
 
 class GaudiXyzModel(XyzModel):
     """
-    Copied from https://github.com/huggingface/transformers/blob/v4.38.2/src/transformers/models/llama/modeling_llama.py#L909
+    Copied from https://github.com/huggingface/transformers/blob/v4.38.2/src/transformers/models/xyz/modeling_xyz.py#L909
     """
     def __init__(self, config: XyzConfig):
         """
-        Copied from https://github.com/huggingface/transformers/blob/v4.38.2/src/transformers/models/llama/modeling_llama.py#L917
+        Copied from https://github.com/huggingface/transformers/blob/v4.38.2/src/transformers/models/xyz/modeling_xyz.py#L917
         1. set fill_value to 1 instead of True
         2. add device=self.device
         """
@@ -1210,7 +1210,7 @@ class GaudiXyzModel(XyzModel):
         attn_batch_split: int = 1,
     ) -> Union[Tuple, BaseModelOutputWithPast]:
         """
-        Copied from LlamaModel.forward: https://github.com/huggingface/transformers/blob/main/src/transformers/models/llama/modeling_llama.py
+        Copied from XyzModel.forward: https://github.com/huggingface/transformers/blob/main/src/transformers/models/xyz/modeling_xyz.py
         The only differences are:
         - add new args token_idx
         - add new args attn_softmax_bf16
@@ -1420,7 +1420,7 @@ class GaudiXyzModel(XyzModel):
 
 class XyzForCausalLM(XyzForCausalLMBase):
     """
-    Inherits from LlamaForCausalLM: https://github.com/huggingface/transformers/blob/main/src/transformers/models/llama/modeling_llama.py
+    Inherits from XyzForCausalLM: https://github.com/huggingface/transformers/blob/main/src/transformers/models/xyz/modeling_xyz.py
     The only differences are:
     - add new args token_idx
     - add token_idx into model_inputs

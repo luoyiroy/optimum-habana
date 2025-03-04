@@ -48,14 +48,14 @@ correct. If you don't know the answer to a question, please don't share false in
 
 class XyzTokenizerFast(PreTrainedTokenizerFast):
     """
-    Construct a Llama tokenizer. Based on byte-level Byte-Pair-Encoding.
+    Construct a Xyz tokenizer. Based on byte-level Byte-Pair-Encoding.
 
     This uses notably ByteFallback and no normalization.
 
     ```python
-    >>> from transformers import LlamaTokenizerFast
+    >>> from transformers import XyzTokenizerFast
 
-    >>> tokenizer = LlamaTokenizerFast.from_pretrained("hf-internal-testing/llama-tokenizer")
+    >>> tokenizer = XyzTokenizerFast.from_pretrained("hf-internal-testing/xyz-tokenizer")
     >>> tokenizer.encode("Hello this is a test")
     [1, 15043, 445, 338, 263, 1243]
     ```
@@ -91,7 +91,7 @@ class XyzTokenizerFast(PreTrainedTokenizerFast):
         add_eos_token (`bool`, *optional*, defaults to `False`):
             Whether or not to add an `eos_token` at the end of sequences.
         use_default_system_prompt (`bool`, *optional*, defaults to `False`):
-            Whether or not the default system prompt for Llama should be used
+            Whether or not the default system prompt for Xyz should be used
         legacy (`bool`, *optional*):
             Whether or not the `legacy` behavior of the tokenizer should be used. Legacy is before the merge of #24622
             and #25224 which includes fixes to properly handle tokens that appear after special tokens.
@@ -100,17 +100,17 @@ class XyzTokenizerFast(PreTrainedTokenizerFast):
 
             - `legacy=True`:
             ```python
-            >>> from transformers import LlamaTokenizerFast
+            >>> from transformers import XyzTokenizerFast
 
-            >>> tokenizer = LlamaTokenizerFast.from_pretrained("huggyllama/llama-7b", legacy=True, from_slow=True)
+            >>> tokenizer = XyzTokenizerFast.from_pretrained("huggyxyz/xyz-7b", legacy=True, from_slow=True)
             >>> tokenizer.encode("Hello <s>.") # 869 is '▁.'
             [1, 15043, 29871, 1, 869]
             ```
             - `legacy=False`:
             ```python
-            >>> from transformers import LlamaTokenizerFast
+            >>> from transformers import XyzTokenizerFast
 
-            >>> tokenizer = LlamaTokenizerFast.from_pretrained("huggyllama/llama-7b", legacy=False, from_slow=True)
+            >>> tokenizer = XyzTokenizerFast.from_pretrained("huggyxyz/xyz-7b", legacy=False, from_slow=True)
             >>> tokenizer.encode("Hello <s>.")  # 29889 is '.'
             [1, 15043, 29871, 1, 29889]
             ```
@@ -145,7 +145,7 @@ class XyzTokenizerFast(PreTrainedTokenizerFast):
                 " expected, and simply means that the `legacy` (previous) behavior will be used so nothing changes for you."
                 " If you want to use the new behaviour, set `legacy=False`. This should only be set if you understand what it"
                 " means, and thoroughly read the reason why this was added as explained in"
-                " https://github.com/huggingface/transformers/pull/24565 - if you loaded a llama tokenizer from a GGUF file"
+                " https://github.com/huggingface/transformers/pull/24565 - if you loaded a xyz tokenizer from a GGUF file"
                 " you can ignore this message."
             )
             legacy = True
@@ -242,7 +242,7 @@ class XyzTokenizerFast(PreTrainedTokenizerFast):
         return (out_vocab_file,)
 
     # TODO ArthurZ let's rely on the template processor instead, refactor all fast tokenizers
-    # Copied from transformers.models.llama.tokenization_llama.LlamaTokenizer.build_inputs_with_special_tokens
+    # Copied from transformers.models.xyz.tokenization_xyz.XyzTokenizer.build_inputs_with_special_tokens
     def build_inputs_with_special_tokens(self, token_ids_0, token_ids_1=None):
         bos_token_id = [self.bos_token_id] if self.add_bos_token else []
         eos_token_id = [self.eos_token_id] if self.add_eos_token else []

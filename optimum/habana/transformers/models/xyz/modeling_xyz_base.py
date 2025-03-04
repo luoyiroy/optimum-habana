@@ -113,7 +113,7 @@ def _prepare_4d_causal_attention_mask_with_cache_position(
 class XyzRMSNorm(nn.Module):
     def __init__(self, hidden_size, eps=1e-6):
         """
-        LlamaRMSNorm is equivalent to T5LayerNorm
+        XyzRMSNorm is equivalent to T5LayerNorm
         """
         super().__init__()
         self.weight = nn.Parameter(torch.ones(hidden_size))
@@ -149,7 +149,7 @@ class XyzRotaryEmbedding(nn.Module):
         self.rope_kwargs = {}
         if config is None:
             logger.warning_once(
-                "`LlamaRotaryEmbedding` can now be fully parameterized by passing the model config through the "
+                "`XyzRotaryEmbedding` can now be fully parameterized by passing the model config through the "
                 "`config` argument. All other arguments will be removed in v4.46"
             )
             self.rope_kwargs = {
@@ -221,24 +221,24 @@ class XyzRotaryEmbedding(nn.Module):
 
 
 class XyzLinearScalingRotaryEmbedding(XyzRotaryEmbedding):
-    """LlamaRotaryEmbedding extended with linear scaling. Credits to the Reddit user /u/kaiokendev"""
+    """XyzRotaryEmbedding extended with linear scaling. Credits to the Reddit user /u/kaiokendev"""
 
     def __init__(self, *args, **kwargs):
         logger.warning_once(
-            "`LlamaLinearScalingRotaryEmbedding` is deprecated an will be removed in v4.46. Please use "
-            "`LlamaRotaryEmbedding`, which now also does linear scaling (simply pass the model config to __init__)."
+            "`XyzLinearScalingRotaryEmbedding` is deprecated an will be removed in v4.46. Please use "
+            "`XyzRotaryEmbedding`, which now also does linear scaling (simply pass the model config to __init__)."
         )
         kwargs["rope_type"] = "linear"
         super().__init__(*args, **kwargs)
 
 
 class XyzDynamicNTKScalingRotaryEmbedding(XyzRotaryEmbedding):
-    """LlamaRotaryEmbedding extended with Dynamic NTK scaling. Credits to the Reddit users /u/bloc97 and /u/emozilla"""
+    """XyzRotaryEmbedding extended with Dynamic NTK scaling. Credits to the Reddit users /u/bloc97 and /u/emozilla"""
 
     def __init__(self, *args, **kwargs):
         logger.warning_once(
-            "`LlamaDynamicNTKScalingRotaryEmbedding` is deprecated an will be removed in v4.46. Please use "
-            "`LlamaRotaryEmbedding`, which now also does dynamic ntk scaling (simply pass the model config to "
+            "`XyzDynamicNTKScalingRotaryEmbedding` is deprecated an will be removed in v4.46. Please use "
+            "`XyzRotaryEmbedding`, which now also does dynamic ntk scaling (simply pass the model config to "
             "__init__)."
         )
         kwargs["rope_type"] = "dynamic"
@@ -452,7 +452,7 @@ class XyzAttention(nn.Module):
 
 class XyzFlashAttention2(XyzAttention):
     """
-    Llama flash attention module. This module inherits from `LlamaAttention` as the weights of the module stays
+    Xyz flash attention module. This module inherits from `XyzAttention` as the weights of the module stays
     untouched. The only required change would be on the forward pass where it needs to correctly call the public API of
     flash attention and deal with padding tokens in case the input contains any of them.
     """
@@ -526,7 +526,7 @@ class XyzFlashAttention2(XyzAttention):
         # therefore the input hidden states gets silently casted in float32. Hence, we need
         # cast them back in the correct dtype just to be sure everything works as expected.
         # This might slowdown training & inference so it is recommended to not cast the LayerNorms
-        # in fp32. (LlamaRMSNorm handles it correctly)
+        # in fp32. (XyzRMSNorm handles it correctly)
 
         input_dtype = query_states.dtype
         if input_dtype == torch.float32:
@@ -572,12 +572,12 @@ class XyzFlashAttention2(XyzAttention):
 
 class XyzSdpaAttention(XyzAttention):
     """
-    Llama attention module using torch.nn.functional.scaled_dot_product_attention. This module inherits from
-    `LlamaAttention` as the weights of the module stays untouched. The only changes are on the forward pass to adapt to
+    Xyz attention module using torch.nn.functional.scaled_dot_product_attention. This module inherits from
+    `XyzAttention` as the weights of the module stays untouched. The only changes are on the forward pass to adapt to
     SDPA API.
     """
 
-    # Adapted from LlamaAttention.forward
+    # Adapted from XyzAttention.forward
     def forward(
         self,
         hidden_states: torch.Tensor,
@@ -593,7 +593,7 @@ class XyzSdpaAttention(XyzAttention):
         if output_attentions:
             # TODO: Improve this warning with e.g. `model.config.attn_implementation = "manual"` once this is implemented.
             logger.warning_once(
-                "LlamaModel is using LlamaSdpaAttention, but `torch.nn.functional.scaled_dot_product_attention` does not support `output_attentions=True`. Falling back to the manual attention implementation, "
+                "XyzModel is using XyzSdpaAttention, but `torch.nn.functional.scaled_dot_product_attention` does not support `output_attentions=True`. Falling back to the manual attention implementation, "
                 'but specifying the manual implementation will be required from Transformers version v5.0.0 onwards. This warning can be removed using the argument `attn_implementation="eager"` when loading the model.'
             )
             return super().forward(
@@ -669,7 +669,7 @@ class XyzSdpaAttention(XyzAttention):
         return attn_output, None, past_key_value
 
 
-LLAMA_ATTENTION_CLASSES = {
+XYZ_ATTENTION_CLASSES = {
     "eager": XyzAttention,
     "flash_attention_2": XyzFlashAttention2,
     "sdpa": XyzSdpaAttention,
@@ -681,7 +681,7 @@ class XyzDecoderLayer(nn.Module):
         super().__init__()
         self.hidden_size = config.hidden_size
 
-        self.self_attn = LLAMA_ATTENTION_CLASSES[config._attn_implementation](config=config, layer_idx=layer_idx)
+        self.self_attn = XYZ_ATTENTION_CLASSES[config._attn_implementation](config=config, layer_idx=layer_idx)
 
         self.mlp = XyzMLP(config)
         self.input_layernorm = XyzRMSNorm(config.hidden_size, eps=config.rms_norm_eps)
@@ -756,7 +756,7 @@ class XyzDecoderLayer(nn.Module):
         return outputs
 
 
-LLAMA_START_DOCSTRING = r"""
+XYZ_START_DOCSTRING = r"""
     This model inherits from [`PreTrainedModel`]. Check the superclass documentation for the generic methods the
     library implements for all its model (such as downloading or saving, resizing the input embeddings, pruning heads
     etc.)
@@ -766,7 +766,7 @@ LLAMA_START_DOCSTRING = r"""
     and behavior.
 
     Parameters:
-        config ([`LlamaConfig`]):
+        config ([`XyzConfig`]):
             Model configuration class with all the parameters of the model. Initializing with a config file does not
             load the weights associated with the model, only the configuration. Check out the
             [`~PreTrainedModel.from_pretrained`] method to load the model weights.
@@ -774,8 +774,8 @@ LLAMA_START_DOCSTRING = r"""
 
 
 @add_start_docstrings(
-    "The bare LLaMA Model outputting raw hidden-states without any specific head on top.",
-    LLAMA_START_DOCSTRING,
+    "The bare XYZ Model outputting raw hidden-states without any specific head on top.",
+    XYZ_START_DOCSTRING,
 )
 class XyzPreTrainedModel(PreTrainedModel):
     config_class = XyzConfig
@@ -801,7 +801,7 @@ class XyzPreTrainedModel(PreTrainedModel):
                 module.weight.data[module.padding_idx].zero_()
 
 
-LLAMA_INPUTS_DOCSTRING = r"""
+XYZ_INPUTS_DOCSTRING = r"""
     Args:
         input_ids (`torch.LongTensor` of shape `(batch_size, sequence_length)`):
             Indices of input sequence tokens in the vocabulary. Padding will be ignored by default should you provide
@@ -877,15 +877,15 @@ LLAMA_INPUTS_DOCSTRING = r"""
 
 
 @add_start_docstrings(
-    "The bare LLaMA Model outputting raw hidden-states without any specific head on top.",
-    LLAMA_START_DOCSTRING,
+    "The bare XYZ Model outputting raw hidden-states without any specific head on top.",
+    XYZ_START_DOCSTRING,
 )
 class XyzModel(XyzPreTrainedModel):
     """
-    Transformer decoder consisting of *config.num_hidden_layers* layers. Each layer is a [`LlamaDecoderLayer`]
+    Transformer decoder consisting of *config.num_hidden_layers* layers. Each layer is a [`XyzDecoderLayer`]
 
     Args:
-        config: LlamaConfig
+        config: XyzConfig
     """
 
     def __init__(self, config: XyzConfig):
@@ -910,7 +910,7 @@ class XyzModel(XyzPreTrainedModel):
     def set_input_embeddings(self, value):
         self.embed_tokens = value
 
-    @add_start_docstrings_to_model_forward(LLAMA_INPUTS_DOCSTRING)
+    @add_start_docstrings_to_model_forward(XYZ_INPUTS_DOCSTRING)
     def forward(
         self,
         input_ids: torch.LongTensor = None,
@@ -1132,7 +1132,7 @@ class XyzForCausalLMBase(XyzPreTrainedModel, GenerationMixin):
     def get_decoder(self):
         return self.model
 
-    @add_start_docstrings_to_model_forward(LLAMA_INPUTS_DOCSTRING)
+    @add_start_docstrings_to_model_forward(XYZ_INPUTS_DOCSTRING)
     @replace_return_docstrings(output_type=CausalLMOutputWithPast, config_class=_CONFIG_FOR_DOC)
     def forward(
         self,
@@ -1166,10 +1166,10 @@ class XyzForCausalLMBase(XyzPreTrainedModel, GenerationMixin):
         Example:
 
         ```python
-        >>> from transformers import AutoTokenizer, LlamaForCausalLM
+        >>> from transformers import AutoTokenizer, XyzForCausalLM
 
-        >>> model = LlamaForCausalLM.from_pretrained("meta-llama/Llama-2-7b-hf")
-        >>> tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-2-7b-hf")
+        >>> model = XyzForCausalLM.from_pretrained("meta-xyz/Xyz-2-7b-hf")
+        >>> tokenizer = AutoTokenizer.from_pretrained("meta-xyz/Xyz-2-7b-hf")
 
         >>> prompt = "Hey, are you conscious? Can you talk to me?"
         >>> inputs = tokenizer(prompt, return_tensors="pt")
@@ -1317,9 +1317,9 @@ class XyzForCausalLMBase(XyzPreTrainedModel, GenerationMixin):
 
 @add_start_docstrings(
     """
-    The LLaMa Model transformer with a sequence classification head on top (linear layer).
+    The XYZ Model transformer with a sequence classification head on top (linear layer).
 
-    [`LlamaForSequenceClassification`] uses the last token in order to do the classification, as other causal models
+    [`XyzForSequenceClassification`] uses the last token in order to do the classification, as other causal models
     (e.g. GPT-2) do.
 
     Since it does classification on the last token, it requires to know the position of the last token. If a
@@ -1328,7 +1328,7 @@ class XyzForCausalLMBase(XyzPreTrainedModel, GenerationMixin):
     padding tokens when `inputs_embeds` are passed instead of `input_ids`, it does the same (take the last value in
     each row of the batch).
     """,
-    LLAMA_START_DOCSTRING,
+    XYZ_START_DOCSTRING,
 )
 class XyzForSequenceClassification(XyzPreTrainedModel):
     def __init__(self, config):
@@ -1346,7 +1346,7 @@ class XyzForSequenceClassification(XyzPreTrainedModel):
     def set_input_embeddings(self, value):
         self.model.embed_tokens = value
 
-    @add_start_docstrings_to_model_forward(LLAMA_INPUTS_DOCSTRING)
+    @add_start_docstrings_to_model_forward(XYZ_INPUTS_DOCSTRING)
     def forward(
         self,
         input_ids: Optional[torch.LongTensor] = None,
@@ -1440,15 +1440,15 @@ class XyzForSequenceClassification(XyzPreTrainedModel):
 
 @add_start_docstrings(
     """
-The Llama Model transformer with a span classification head on top for extractive question-answering tasks like
+The Xyz Model transformer with a span classification head on top for extractive question-answering tasks like
 SQuAD (a linear layer on top of the hidden-states output to compute `span start logits` and `span end logits`).
     """,
-    LLAMA_START_DOCSTRING,
+    XYZ_START_DOCSTRING,
 )
 class XyzForQuestionAnswering(XyzPreTrainedModel):
     base_model_prefix = "transformer"
 
-    # Copied from transformers.models.bloom.modeling_bloom.BloomForQuestionAnswering.__init__ with Bloom->Llama
+    # Copied from transformers.models.bloom.modeling_bloom.BloomForQuestionAnswering.__init__ with Bloom->Xyz
     def __init__(self, config):
         super().__init__(config)
         self.transformer = XyzModel(config)
@@ -1463,7 +1463,7 @@ class XyzForQuestionAnswering(XyzPreTrainedModel):
     def set_input_embeddings(self, value):
         self.transformer.embed_tokens = value
 
-    @add_start_docstrings_to_model_forward(LLAMA_INPUTS_DOCSTRING)
+    @add_start_docstrings_to_model_forward(XYZ_INPUTS_DOCSTRING)
     def forward(
         self,
         input_ids: Optional[torch.LongTensor] = None,
@@ -1539,10 +1539,10 @@ class XyzForQuestionAnswering(XyzPreTrainedModel):
 
 @add_start_docstrings(
     """
-    The Llama Model transformer with a token classification head on top (a linear layer on top of the hidden-states
+    The Xyz Model transformer with a token classification head on top (a linear layer on top of the hidden-states
     output) e.g. for Named-Entity-Recognition (NER) tasks.
     """,
-    LLAMA_START_DOCSTRING,
+    XYZ_START_DOCSTRING,
 )
 class XyzForTokenClassification(XyzPreTrainedModel):
     def __init__(self, config):
@@ -1567,7 +1567,7 @@ class XyzForTokenClassification(XyzPreTrainedModel):
     def set_input_embeddings(self, value):
         self.model.embed_tokens = value
 
-    @add_start_docstrings_to_model_forward(LLAMA_INPUTS_DOCSTRING)
+    @add_start_docstrings_to_model_forward(XYZ_INPUTS_DOCSTRING)
     def forward(
         self,
         input_ids: Optional[torch.LongTensor] = None,
